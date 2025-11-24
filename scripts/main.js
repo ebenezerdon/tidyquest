@@ -135,61 +135,6 @@ $(function() {
             $(this).addClass('bg-blue-100 ring-2 ring-blue-300');
         });
 
-        // --- AI Integration ---
-        // Auto-load model in background
-        if (window.AppLLM) {
-            $('#btn-ai-suggest').prop('disabled', true);
-            window.AppLLM.load(null, (percent) => {
-                $('#ai-status-text').text(`Loading ${percent}%`);
-                $('#ai-progress-bar').css('width', `${percent}%`);
-            }).then(() => {
-                $('#ai-status-text').text('Ready');
-                $('#ai-status-indicator').fadeOut(2000);
-                $('#btn-ai-suggest').prop('disabled', false);
-            }).catch(e => {
-                $('#ai-status-text').text('Error loading');
-                console.error(e);
-            });
-        }
-
-        $('#btn-ai-suggest').click(async function() {
-            const $btn = $(this);
-            const $list = $('#ai-suggestions-list');
-            const $container = $('#ai-suggestions');
-            
-            $btn.prop('disabled', true).text('Thinking...');
-            $container.removeClass('hidden');
-            $list.html('<div class="animate-pulse text-gray-400">Generating ideas...</div>');
-
-            try {
-                let fullText = '';
-                await window.AppLLM.generate('List 3 fun or useful household chore names for a family. Keep them short (max 4 words each). Return ONLY the list, no intro text.', {
-                    onToken: (t) => {
-                        fullText += t;
-                    }
-                });
-                
-                // Simple parse
-                const suggestions = fullText.split('\n').filter(line => line.trim().length > 0);
-                $list.empty();
-                
-                suggestions.forEach(s => {
-                    const clean = s.replace(/^[\d-.]+\s*/, '').trim(); // Remove numbering
-                    if(clean) {
-                         const $item = $(`<button type="button" class="block w-full text-left p-2 hover:bg-purple-100 rounded text-purple-800 text-sm">+ ${clean}</button>`);
-                         $item.click(() => {
-                             $('input[name="title"]').val(clean);
-                             $container.addClass('hidden');
-                         });
-                         $list.append($item);
-                    }
-                });
-            } catch(e) {
-                $list.text('Failed to suggest.');
-            } finally {
-                $btn.prop('disabled', false).html('✨ <span class="hidden sm:inline font-bold text-xs">AI Suggest</span>');
-            }
-        });
     };
 
     // Start

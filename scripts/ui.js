@@ -152,7 +152,6 @@ window.App = window.App || {};
         $(`#modal-${id}`).addClass('hidden');
         // Reset forms
         $(`#form-${id}`)[0].reset();
-        $('#ai-suggestions').addClass('hidden');
     };
 
     UI.fireConfetti = function() {

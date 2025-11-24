@@ -43,15 +43,6 @@
             </button>
         </nav>
 
-        <div id="ai-status-indicator" class="bg-gray-50 rounded-xl p-3 text-xs text-gray-500">
-            <div class="flex justify-between mb-1">
-                <span>AI Model</span>
-                <span id="ai-status-text">Initializing...</span>
-            </div>
-            <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
-                <div id="ai-progress-bar" class="h-full bg-[hsl(174,80%,40%)] w-0 transition-all duration-300"></div>
-            </div>
-        </div>
     </aside>
 
     <!-- Main Content -->
@@ -195,9 +186,6 @@
                     <label class="block text-sm font-bold text-gray-700 mb-1">Chore Name</label>
                     <div class="flex gap-2">
                         <input type="text" name="title" class="input-field" placeholder="e.g. Wash Dishes" required>
-                        <button type="button" id="btn-ai-suggest" class="bg-purple-100 text-purple-700 px-3 rounded-xl hover:bg-purple-200 transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed" title="Ask AI for suggestion">
-                            ✨ <span class="hidden sm:inline font-bold text-xs">AI Suggest</span>
-                        </button>
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
@@ -228,11 +216,6 @@
                     <button type="submit" class="w-full btn-action py-3 text-lg">Create Chore</button>
                 </div>
             </form>
-            <!-- AI Suggestions Container -->
-            <div id="ai-suggestions" class="hidden mt-4 p-4 bg-purple-50 rounded-xl border border-purple-100">
-                <h4 class="text-xs font-bold text-purple-800 uppercase mb-2">AI Suggestions</h4>
-                <div id="ai-suggestions-list" class="space-y-2"></div>
-            </div>
         </div>
     </div>
 
@@ -298,7 +281,6 @@
 
     <!-- Scripts -->
     <script src="scripts/helpers.js"></script>
-    <script src="scripts/ai.js"></script>
     <script src="scripts/ui.js"></script>
     <script src="scripts/main.js"></script>
 </body>
