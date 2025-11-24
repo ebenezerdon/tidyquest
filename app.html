@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TidyQuest App</title>
+    <script src="https://cdn.jsdelivr.net/npm/tailwindcss-cdn@3.4.10/tailwindcss.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link rel="stylesheet" href="styles/main.css">
+    <style type="text/tailwindcss" data-teda="tailwind-apply">
+        @layer components {
+            .nav-item { @apply flex flex-col items-center justify-center p-2 text-gray-400 hover:text-[hsl(174,80%,40%)] transition-colors cursor-pointer; }
+            .nav-item.active { @apply text-[hsl(174,80%,40%)] font-bold; }
+            .card { @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-5; }
+            .btn-action { @apply bg-[hsl(174,80%,40%)] hover:bg-[hsl(174,80%,35%)] text-white font-bold py-2 px-4 rounded-xl transition-all shadow-lg shadow-[rgba(20,184,166,0.3)]; }
+            .input-field { @apply w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-[hsl(174,80%,40%)] focus:ring-2 focus:ring-[hsl(174,80%,40%)]/20 transition-all; }
+        }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] text-gray-800 h-screen flex flex-col md:flex-row overflow-hidden selection:bg-[hsl(174,80%,90%)] selection:text-[hsl(174,80%,30%)]">
+
+    <!-- Sidebar (Desktop) -->
+    <aside class="hidden md:flex flex-col w-64 bg-white border-r border-gray-200 h-full p-6 z-20">
+        <a href="index.html" class="flex items-center gap-2 mb-10 group">
+            <div class="w-8 h-8 bg-[hsl(174,80%,40%)] rounded-lg flex items-center justify-center group-hover:rotate-12 transition-transform">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+            </div>
+            <span class="text-xl font-black tracking-tight">TidyQuest</span>
+        </a>
+        
+        <nav class="space-y-2 flex-1">
+            <button data-view="dashboard" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left font-medium transition-colors hover:bg-gray-50 text-[hsl(174,80%,40%)] bg-[hsl(174,80%,95%)]">
+                <span class="text-xl">📊</span> Dashboard
+            </button>
+            <button data-view="chores" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900">
+                <span class="text-xl">🧹</span> Chores
+            </button>
+            <button data-view="rewards" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900">
+                <span class="text-xl">🎁</span> Rewards
+            </button>
+            <button data-view="members" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900">
+                <span class="text-xl">👥</span> Members
+            </button>
+        </nav>
+
+        <div id="ai-status-indicator" class="bg-gray-50 rounded-xl p-3 text-xs text-gray-500">
+            <div class="flex justify-between mb-1">
+                <span>AI Model</span>
+                <span id="ai-status-text">Initializing...</span>
+            </div>
+            <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
+                <div id="ai-progress-bar" class="h-full bg-[hsl(174,80%,40%)] w-0 transition-all duration-300"></div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 h-full overflow-y-auto relative">
+        <!-- Header Mobile -->
+        <header class="md:hidden bg-white p-4 flex justify-between items-center border-b border-gray-200 sticky top-0 z-20">
+            <div class="font-black text-xl">TidyQuest</div>
+            <div id="mobile-points-display" class="bg-[hsl(174,80%,95%)] text-[hsl(174,80%,40%)] px-3 py-1 rounded-full text-sm font-bold">0 XP</div>
+        </header>
+
+        <!-- Views -->
+        <div id="view-dashboard" class="view-section p-6 md:p-10 max-w-5xl mx-auto">
+            <h1 class="text-3xl font-black mb-8 text-gray-900">Dashboard</h1>
+            
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div class="bg-gradient-to-br from-[hsl(174,80%,40%)] to-[hsl(174,60%,50%)] rounded-3xl p-6 text-white shadow-xl shadow-[rgba(20,184,166,0.3)] relative overflow-hidden">
+                    <div class="absolute top-0 right-0 opacity-10 transform translate-x-1/4 -translate-y-1/4">
+                        <svg class="w-32 h-32" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                    </div>
+                    <div class="relative z-10">
+                        <h3 class="text-teal-100 font-medium mb-1">Pending Chores</h3>
+                        <div class="text-4xl font-black" id="dash-pending-count">0</div>
+                        <button class="mt-4 bg-white/20 hover:bg-white/30 backdrop-blur-sm px-4 py-2 rounded-lg text-sm font-bold transition-colors w-full text-left" onclick="$('button[data-view=chores]').click()">View All →</button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
+                     <div>
+                        <h3 class="text-gray-500 font-medium mb-1">Today's Top Earner</h3>
+                        <div id="dash-top-earner" class="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                            <span class="text-gray-400 text-sm">No activity yet</span>
+                        </div>
+                     </div>
+                </div>
+
+                <div class="bg-[hsl(30,90%,96%)] rounded-3xl p-6 border border-[hsl(30,50%,90%)] flex flex-col justify-between">
+                    <h3 class="text-[hsl(30,60%,50%)] font-medium mb-1">Weekly Goal</h3>
+                    <div class="w-full bg-white/50 rounded-full h-3 mb-2">
+                        <div class="bg-[hsl(30,90%,60%)] h-3 rounded-full w-[35%]" style="width: 35%"></div>
+                    </div>
+                    <div class="text-sm text-[hsl(30,60%,50%)]">350 / 1000 XP</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold text-gray-900">Today's Tasks</h2>
+                        <button class="text-sm text-[hsl(174,80%,40%)] font-bold hover:underline" onclick="$('button[data-view=chores]').click()">Manage</button>
+                    </div>
+                    <div id="dash-chores-list" class="space-y-4">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+                
+                <div>
+                     <h2 class="text-xl font-bold text-gray-900 mb-6">Leaderboard</h2>
+                     <div id="dash-leaderboard" class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                        <!-- Populated via JS -->
+                     </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-chores" class="view-section hidden p-6 md:p-10 max-w-5xl mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <div>
+                    <h1 class="text-3xl font-black text-gray-900">Chores</h1>
+                    <p class="text-gray-500">Manage household tasks and assignments.</p>
+                </div>
+                <button id="btn-add-chore" class="btn-action flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Add Chore
+                </button>
+            </div>
+            <div id="chores-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Chores Grid -->
+            </div>
+            <div id="chores-empty-state" class="hidden flex flex-col items-center justify-center py-20 text-center">
+                <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6 text-4xl">✨</div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">All Clean!</h3>
+                <p class="text-gray-500 max-w-xs">No chores found. Add a new chore to get the household moving.</p>
+            </div>
+        </div>
+
+        <div id="view-rewards" class="view-section hidden p-6 md:p-10 max-w-5xl mx-auto">
+             <div class="flex justify-between items-center mb-8">
+                <h1 class="text-3xl font-black text-gray-900">Rewards Store</h1>
+                <button id="btn-add-reward" class="btn-action">Add Reward</button>
+            </div>
+            <div id="rewards-list-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Rewards -->
+            </div>
+        </div>
+
+        <div id="view-members" class="view-section hidden p-6 md:p-10 max-w-5xl mx-auto">
+             <div class="flex justify-between items-center mb-8">
+                <h1 class="text-3xl font-black text-gray-900">Family Members</h1>
+                <button id="btn-add-member" class="btn-action">Add Member</button>
+            </div>
+            <div id="members-list-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Members -->
+            </div>
+        </div>
+        
+        <!-- Bottom Nav (Mobile) -->
+        <div class="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 flex justify-around p-2 pb-safe z-50">
+            <button data-view="dashboard" class="nav-btn flex flex-col items-center p-2 text-[hsl(174,80%,40%)]">
+                <span class="text-xl">📊</span>
+                <span class="text-[10px] font-bold mt-1">Home</span>
+            </button>
+             <button data-view="chores" class="nav-btn flex flex-col items-center p-2 text-gray-400">
+                <span class="text-xl">🧹</span>
+                <span class="text-[10px] font-bold mt-1">Chores</span>
+            </button>
+             <button data-view="rewards" class="nav-btn flex flex-col items-center p-2 text-gray-400">
+                <span class="text-xl">🎁</span>
+                <span class="text-[10px] font-bold mt-1">Rewards</span>
+            </button>
+             <button data-view="members" class="nav-btn flex flex-col items-center p-2 text-gray-400">
+                <span class="text-xl">👥</span>
+                <span class="text-[10px] font-bold mt-1">Family</span>
+            </button>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <!-- Add Chore Modal -->
+    <div id="modal-chore" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onclick="window.App.UI.hideModal('chore')"></div>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-lg rounded-3xl shadow-2xl p-8 animate-scale-up">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Add New Chore</h2>
+                <button onclick="window.App.UI.hideModal('chore')" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="form-chore" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Chore Name</label>
+                    <div class="flex gap-2">
+                        <input type="text" name="title" class="input-field" placeholder="e.g. Wash Dishes" required>
+                        <button type="button" id="btn-ai-suggest" class="bg-purple-100 text-purple-700 px-3 rounded-xl hover:bg-purple-200 transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed" title="Ask AI for suggestion">
+                            ✨ <span class="hidden sm:inline font-bold text-xs">AI Suggest</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Points</label>
+                        <input type="number" name="points" class="input-field" value="10" min="1">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Due Date</label>
+                        <input type="date" name="dueDate" class="input-field">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Assign To</label>
+                    <select name="assigneeId" id="chore-assignee-select" class="input-field">
+                        <!-- Populated via JS -->
+                    </select>
+                </div>
+                 <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Frequency</label>
+                    <select name="frequency" class="input-field">
+                        <option value="once">One-time</option>
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                    </select>
+                </div>
+                <div class="pt-4">
+                    <button type="submit" class="w-full btn-action py-3 text-lg">Create Chore</button>
+                </div>
+            </form>
+            <!-- AI Suggestions Container -->
+            <div id="ai-suggestions" class="hidden mt-4 p-4 bg-purple-50 rounded-xl border border-purple-100">
+                <h4 class="text-xs font-bold text-purple-800 uppercase mb-2">AI Suggestions</h4>
+                <div id="ai-suggestions-list" class="space-y-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Member Modal -->
+    <div id="modal-member" class="fixed inset-0 z-50 hidden">
+         <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onclick="window.App.UI.hideModal('member')"></div>
+         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-md rounded-3xl shadow-2xl p-8 animate-scale-up">
+             <h2 class="text-2xl font-bold mb-6">New Family Member</h2>
+             <form id="form-member" class="space-y-4">
+                 <div>
+                     <label class="block text-sm font-bold text-gray-700 mb-1">Name</label>
+                     <input type="text" name="name" class="input-field" placeholder="e.g. Dad" required>
+                 </div>
+                 <div>
+                     <label class="block text-sm font-bold text-gray-700 mb-1">Avatar Emoji</label>
+                     <div class="grid grid-cols-5 gap-2">
+                        <button type="button" class="emoji-btn text-2xl p-2 rounded-lg bg-gray-50 hover:bg-gray-100 text-center" data-val="👩">👩</button>
+                        <button type="button" class="emoji-btn text-2xl p-2 rounded-lg bg-gray-50 hover:bg-gray-100 text-center" data-val="👨">👨</button>
+                        <button type="button" class="emoji-btn text-2xl p-2 rounded-lg bg-gray-50 hover:bg-gray-100 text-center" data-val="👧">👧</button>
+                        <button type="button" class="emoji-btn text-2xl p-2 rounded-lg bg-gray-50 hover:bg-gray-100 text-center" data-val="👦">👦</button>
+                        <button type="button" class="emoji-btn text-2xl p-2 rounded-lg bg-gray-50 hover:bg-gray-100 text-center" data-val="😸">😸</button>
+                     </div>
+                     <input type="hidden" name="avatar" id="member-avatar-input" value="😊">
+                 </div>
+                 <div>
+                     <label class="block text-sm font-bold text-gray-700 mb-1">Color</label>
+                     <input type="color" name="color" class="w-full h-12 rounded-xl cursor-pointer" value="#14b8a6">
+                 </div>
+                 <div class="pt-4">
+                     <button type="submit" class="w-full btn-action py-3">Add Member</button>
+                 </div>
+             </form>
+         </div>
+    </div>
+
+    <!-- Add Reward Modal -->
+    <div id="modal-reward" class="fixed inset-0 z-50 hidden">
+         <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onclick="window.App.UI.hideModal('reward')"></div>
+         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-md rounded-3xl shadow-2xl p-8 animate-scale-up">
+             <h2 class="text-2xl font-bold mb-6">Create Reward</h2>
+             <form id="form-reward" class="space-y-4">
+                 <div>
+                     <label class="block text-sm font-bold text-gray-700 mb-1">Reward Title</label>
+                     <input type="text" name="title" class="input-field" placeholder="e.g. 1 Hour Screen Time" required>
+                 </div>
+                 <div>
+                     <label class="block text-sm font-bold text-gray-700 mb-1">Cost (Points)</label>
+                     <input type="number" name="cost" class="input-field" value="50" min="1">
+                 </div>
+                 <div>
+                     <label class="block text-sm font-bold text-gray-700 mb-1">Icon</label>
+                     <input type="text" name="icon" class="input-field" placeholder="e.g. 🎮" value="🎮">
+                 </div>
+                 <div class="pt-4">
+                     <button type="submit" class="w-full btn-action py-3">Add Reward</button>
+                 </div>
+             </form>
+         </div>
+    </div>
+
+    <!-- Confetti Canvas -->
+    <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-[100]"></canvas>
+
+    <!-- Scripts -->
+    <script src="scripts/helpers.js"></script>
+    <script src="scripts/ai.js"></script>
+    <script src="scripts/ui.js"></script>
+    <script src="scripts/main.js"></script>
+</body>
+</html>
